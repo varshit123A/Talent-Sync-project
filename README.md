@@ -14,38 +14,27 @@ TalentSync is a distributed, containerized microservices platform built with **N
 
 ## 🏗️ Detailed System Architecture
 
-### 1. High-Level Architecture Diagram
-┌───────────────────────────┐
-                              │   Client / Postman / CLI  │
-                              └─────────────┬─────────────┘
-                                            │
-                                            │ HTTP Requests (Port 5000)
-                                            ▼
-                            ┌───────────────────────────────┐
-                            │   gateway-service             │
-                            │   (Reverse Proxy / Gateway)   │
-                            └───────┬───────────────┬───────┘
-                                    │               │
-                 Proxy /api/auth    │               │ Proxy /api/jobs
-                 ───────────────────┘               └───────────────────┐
-                 ▼                                                      ▼
-┌─────────────────────────────────┐                    ┌─────────────────────────────────┐
-│   auth-service                  │                    │   job-service                   │
-│   (Port 5001)                   │                    │   (Port 5002)                   │
-├─────────────────────────────────┤                    ├─────────────────────────────────┤
-│ • Validates User Credentials    │                    │ • Manages Job Listings          │
-│ • Signs & Issues JWT Tokens     │                    │ • Verifies JWT Claims & RBAC    │
-│ • Encodes User ID & Roles       │                    │ • Implements Redis Cache-Aside  │
-└─────────────────────────────────┘                    │ • Emits Kafka Domain Events     │
-                                                       └────────┬───────────────┬────────┘
-                                                                │               │
-                                          Cache Read / Write    │               │ Publish Event
-                                          ──────────────────────┘               └──────────────────────┐
-                                          ▼                                                            ▼
-                          ┌───────────────────────────────┐                            ┌───────────────────────────────┐
-                          │   redis (Port 6379)           │                            │   kafka (Port 9092)           │
-                          │   (In-Memory Key-Value Store) │                            │   (Event Streaming Broker)    │
-                          └───────────────────────────────┘                            └───────────────────────────────┘
+[ Client / Postman / CLI ]
+                   │
+                   │ HTTP Requests (Port 5000)
+                   ▼
+       ┌───────────────────────┐
+       │    gateway-service    │
+       └───────────┬───────────┘
+                   │
+    ┌──────────────┴──────────────┐
+    │ /api/auth                   │ /api/jobs
+    ▼                             ▼
+┌──────────────┐          ┌──────────────┐
+│ auth-service │          │ job-service  │
+└──────────────┘          └──────┬───────┘
+                                 │
+                 ┌───────────────┴───────────────┐
+                 │ Cache                         │ Publish Event
+                 ▼                               ▼
+          ┌──────────────┐                ┌──────────────┐
+          │    redis     │                │    kafka     │
+          └──────────────┘                └──────────────┘
 ### 2. Request Processing & Data Flows
 
 #### A. Authentication & Authorization Flow
