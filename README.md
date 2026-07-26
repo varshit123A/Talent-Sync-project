@@ -14,7 +14,7 @@ TalentSync is a distributed, containerized microservices platform built with **N
 
 ## 🏗️ Detailed System Architecture
 
-[ Client / Postman / CLI ]
+             [ Client / Postman / CLI ]
                    │
                    │ HTTP Requests (Port 5000)
                    ▼
