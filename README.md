@@ -14,8 +14,6 @@ TalentSync is a distributed, containerized microservices platform built with **N
 
 ## 🏗️ Detailed System Architecture
 
-## 🏗️ Detailed System Architecture
-
 ### 1. High-Level Architecture Diagram
 
 ```mermaid
@@ -33,6 +31,7 @@ flowchart TD
     
     JobService <-->|Cache Read / Write| Redis
     JobService -->|Publish 'JOB_CREATED'| Kafka
+
 ### 2. Request Processing & Data Flows
 
 #### A. Authentication & Authorization Flow
