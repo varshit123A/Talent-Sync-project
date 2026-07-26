@@ -1,0 +1,8 @@
+{
+  "name": "TalentSync - AI Job Portal & ATS",
+  "description": "An enterprise-grade AI-powered job portal and applicant tracking system with real-time event-driven candidate screening, recruiter analytics, and job matching.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

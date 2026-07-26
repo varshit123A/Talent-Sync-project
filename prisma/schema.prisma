@@ -1,0 +1,95 @@
+// This is your Prisma schema file for TalentSync Unified Microservices Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RECRUITER
+  CANDIDATE
+}
+
+enum JobStatus {
+  OPEN
+  PAUSED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  PENDING
+  SCREENED
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id            String        @id @default(uuid()) @db.Uuid
+  name          String        @db.VarChar(255)
+  email         String        @unique @db.VarChar(255)
+  passwordHash  String?       @map("password_hash") @db.VarChar(255)
+  googleId      String?       @unique @map("google_id") @db.VarChar(255)
+  role          Role          @default(CANDIDATE)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relationships
+  postedJobs    Job[]         @relation("RecruiterJobs")
+  applications  Application[] @relation("CandidateApplications")
+
+  @@index([email])
+  @@map("users")
+}
+
+model Job {
+  id             String        @id @default(uuid()) @db.Uuid
+  recruiterId    String        @map("recruiter_id") @db.Uuid
+  title          String        @db.VarChar(255)
+  description    String        @db.Text
+  skillsRequired String[]      @map("skills_required")
+  salaryMin      Int           @map("salary_min")
+  salaryMax      Int           @map("salary_max")
+  location       String        @db.VarChar(255)
+  status         JobStatus     @default(OPEN)
+  postedAt       DateTime      @default(now()) @map("posted_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relationships
+  recruiter      User          @relation("RecruiterJobs", fields: [recruiterId], references: [id], onDelete: Cascade)
+  applications   Application[]
+
+  @@index([recruiterId])
+  @@index([status])
+  @@index([postedAt])
+  @@map("jobs")
+}
+
+model Application {
+  id               String            @id @default(uuid()) @db.Uuid
+  candidateId       String            @map("candidate_id") @db.Uuid
+  jobId            String            @map("job_id") @db.Uuid
+  resumeUrl        String            @map("resume_url") @db.Text
+  resumeText       String?           @map("resume_text") @db.Text
+  status           ApplicationStatus @default(PENDING)
+  matchScore       Float?            @map("match_score")
+  recruiterSummary String?           @map("recruiter_summary") @db.Text
+  missingSkills    String[]          @map("missing_skills")
+  aiInsights       String?           @map("ai_insights") @db.Text
+  submittedAt      DateTime          @default(now()) @map("submitted_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+
+  // Relationships
+  candidate        User              @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  job              Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, jobId])
+  @@index([jobId])
+  @@index([candidateId])
+  @@index([status])
+  @@map("applications")
+}
