@@ -14,27 +14,23 @@ TalentSync is a distributed, containerized microservices platform built with **N
 
 ## 🏗️ Detailed System Architecture
 
-             [ Client / Postman / CLI ]
-                   │
-                   │ HTTP Requests (Port 5000)
-                   ▼
-       ┌───────────────────────┐
-       │    gateway-service    │
-       └───────────┬───────────┘
-                   │
-    ┌──────────────┴──────────────┐
-    │ /api/auth                   │ /api/jobs
-    ▼                             ▼
-┌──────────────┐          ┌──────────────┐
-│ auth-service │          │ job-service  │
-└──────────────┘          └──────┬───────┘
-                                 │
-                 ┌───────────────┴───────────────┐
-                 │ Cache                         │ Publish Event
-                 ▼                               ▼
-          ┌──────────────┐                ┌──────────────┐
-          │    redis     │                │    kafka     │
-          └──────────────┘                └──────────────┘
+### 1. High-Level Architecture Diagram
+
+```mermaid
+flowchart TD
+    Client["Client / Postman / CLI"]
+    Gateway["gateway-service (Port 5000)\nReverse Proxy"]
+    AuthService["auth-service (Port 5001)\nJWT & Auth"]
+    JobService["job-service (Port 5002)\nJobs & Business Logic"]
+    Redis[("Redis Cache (Port 6379)\nIn-Memory Store")]
+    Kafka[["Kafka Broker (Port 9092)\nEvent Streaming"]]
+
+    Client -->|HTTP Requests| Gateway
+    Gateway -->|Proxy /api/auth| AuthService
+    Gateway -->|Proxy /api/jobs| JobService
+    
+    JobService <-->|Cache Read / Write| Redis
+    JobService -->|Publish 'JOB_CREATED'| Kafka
 ### 2. Request Processing & Data Flows
 
 #### A. Authentication & Authorization Flow
